@@ -1,0 +1,162 @@
+College Name,Adjusted Rank,Tuition,Enrollment Numbers
+Princeton University,1,56010,4773
+Columbia University,2,63530,6170
+Harvard University,2,55587,5222
+Massachusetts Institute of Technology,2,55878,4361
+Yale University,5,59950,4703
+Stanford University,6,56169,6366
+University of Chicago,6,60963,6989
+University of Pennsylvania,8,61710,9872
+California Institute of Technology,9,58680,901
+Duke University,9,60489,6717
+Johns Hopkins University,9,58720,6331
+Northwestern University,9,60984,8194
+Dartmouth College,13,60870,4170
+Brown University,14,62404,6792
+Vanderbilt University,14,56966,7057
+Washington University in St. Louis,14,58866,7653
+Cornell University,17,61015,14743
+Rice University,17,52895,4076
+University of Notre Dame,19,58843,8874
+University of California--Los Angeles,20,43022,31636
+Emory University,21,55468,7010
+University of California--Berkeley,22,44115,30980
+Georgetown University,23,59957,7357
+University of Michigan--Ann Arbor,23,53232,31329
+Carnegie Mellon University,25,58924,7073
+University of Virginia,25,53666,17311
+University of Southern California,27,60275,19606
+New York University,28,56500,27444
+Tufts University,28,63000,6114
+University of California--Santa Barbara,28,44196,23196
+University of Florida,28,28658,34931
+University of North Carolina--Chapel Hill,28,36776,19399
+Wake Forest University,28,59770,5441
+University of California--San Diego,34,44487,31842
+University of Rochester,34,59344,6521
+Boston College,36,61706,9445
+University of California--Irvine,36,43709,29638
+Georgia Institute of Technology,38,33794,16561
+University of California--Davis,38,44408,31162
+University of Texas at Austin,38,40032,40048
+William & Mary,38,46467,6236
+Boston University,42,59816,16872
+Brandeis University,42,60391,3493
+Case Western Reserve University,42,54020,5433
+Tulane University,42,60814,7700
+University of Wisconsin--Madison,42,38608,33585
+University of Illinois--Urbana-Champaign,47,34316,33683
+University of Georgia,48,31120,29765
+Lehigh University,49,57470,5203
+Northeastern University,49,57592,15156
+Ohio State University--Columbus,49,35019,46984
+Pepperdine University,49,59702,3459
+Purdue University--West Lafayette,49,28794,34920
+Villanova University,49,59900,7037
+Florida State University,55,21683,32543
+Rensselaer Polytechnic Institute,55,58526,6283
+Santa Clara University,55,55860,5608
+University of Miami,55,54760,11334
+Syracuse University,59,57591,14479
+University of Maryland--College Park,59,38636,30875
+University of Pittsburgh--Pittsburgh Campus,59,34124,19197
+University of Washington,59,39906,35582
+George Washington University,63,59870,11762
+Pennsylvania State University--University Park,63,36476,39809
+Rutgers University--New Brunswick,63,33005,35844
+University of Connecticut,63,41192,18917
+Worcester Polytechnic Institute,63,55531,4892
+Fordham University,68,55776,9399
+Indiana University--Bloomington,68,38354,32986
+SMU,68,60236,6827
+Texas A&M University,68,40087,55568
+University of Massachusetts--Amherst,68,36964,24233
+University of Minnesota--Twin Cities,68,33843,36061
+Yeshiva University,68,47500,2017
+Baylor University,75,50232,14399
+Clemson University,75,37712,20868
+Loyola Marymount University,75,53051,6673
+Virginia Tech,75,33253,30020
+American University,79,51334,7953
+Brigham Young University--Provo,79,6120,33365
+Gonzaga University,79,48470,4852
+North Carolina State University,79,29916,26150
+Binghamton University--SUNY,83,27909,14333
+Colorado School of Mines,83,39800,5216
+Elon University,83,38725,6291
+Howard University,83,28916,7857
+Marquette University,83,45766,8024
+Michigan State University,83,39766,38491
+Stevens Institute of Technology,83,56920,3670
+Texas Christian University,83,51660,9704
+University of California--Riverside,83,43496,22687
+University of Iowa,83,31569,22304
+Stony Brook University--SUNY,93,28080,18010
+University at Buffalo--SUNY,93,28194,22306
+University of California--Merced,93,43319,8276
+University of Delaware,93,36880,18420
+University of Denver,93,54819,5699
+University of San Diego,93,52864,5529
+Auburn University,99,31956,24505
+University of Colorado Boulder,99,38312,30300
+University of Oregon,99,39308,18045
+University of Utah,99,31389,24643
+Clark University,103,50302,2241
+Creighton University,103,44524,4458
+Drexel University,103,57136,14552
+Loyola University Chicago,103,47498,11612
+Miami University--Oxford,103,37379,16522
+New Jersey Institute of Technology,103,33386,9084
+Saint Louis University,103,48824,7357
+Temple University,103,34801,27306
+University of Arizona,103,34667,36503
+University of California--Santa Cruz,103,43820,17207
+University of Illinois--Chicago,103,31787,21921
+University of San Francisco,103,53472,5852
+University of South Florida,103,17324,38579
+University of Tennessee,103,31434,24254
+Arizona State University,117,29438,63124
+Rochester Institute of Technology,117,52756,13412
+SUNY College of Environmental Science and Forestry,117,19976,1731
+University of South Carolina,117,33928,27270
+University of Vermont,117,43890,11136
+Chapman University,122,57214,7404
+Illinois Institute of Technology,122,50640,3123
+Iowa State University of Science and Technology,122,24504,26846
+University of Kansas,122,28034,19135
+University of Missouri,122,30450,23396
+Clarkson University,127,54370,2905
+DePaul University,127,42012,14145
+Gallaudet University,127,17112,1019
+Rutgers University--Newark,127,32409,9118
+Seattle University,127,49335,4299
+Seton Hall University,127,46880,5913
+University of Dayton,127,44890,8644
+University of Kentucky,127,31608,22227
+University of Oklahoma,127,25116,21383
+The Catholic University of America,136,52156,3055
+Drake University,136,45962,2848
+The New School,136,52979,6430
+Samford University,136,35360,3576
+Simmons University,136,43112,1744
+University of La Verne,136,45850,2484
+University of Nebraska--Lincoln,136,27002,20286
+University of New Hampshire,136,37202,11747
+University of St. Thomas (MN),136,48609,6333
+University of Texas at Dallas,136,39776,21187
+University of the Pacific,136,52352,3524
+University of Tulsa,136,44838,2929
+Colorado State University,148,31540,25186
+CUNY--City College,148,19010,12587
+Duquesne University,148,43526,5383
+George Mason University,148,36579,27105
+Michigan Technological University,148,38112,5642
+Quinnipiac University,148,51270,6841
+Rutgers University--Camden,148,32299,5502
+San Diego State University,148,20016,31086
+Thomas Jefferson University,148,41715,3783
+University of Alabama,148,31090,31670
+University of Alabama at Birmingham,148,25380,13878
+University of Central Florida,148,22467,61456
+University of Cincinnati,148,27472,28657
+University of Mississippi,148,25876,16179
