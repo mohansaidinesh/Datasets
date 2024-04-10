@@ -1,250 +1,218 @@
-import streamlit as st
-import requests
-import pyowm
-import pandas as pd
+#!/usr/bin/python3
+
+# Copyright (c) 2020, NVIDIA CORPORATION.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+from functools import partial
+import json
+import logging
+from argparse import ArgumentParser
+
+import tensorflow as tf
+tf.logging.set_verbosity(tf.logging.ERROR)
+
 import numpy as np
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.metrics import classification_report
-from sklearn import metrics
-from sklearn import tree
-import warnings
-warnings.filterwarnings('ignore')
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
-from sklearn import metrics
-import warnings
-warnings.filterwarnings('ignore')
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.metrics import classification_report
-from sklearn import metrics
-from sklearn import tree
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-import warnings
-warnings.filterwarnings('ignore')
-owm = pyowm.OWM('11081b639d8ada3e97fc695bcf6ddb20')
-from PIL import Image
+import horovod.tensorflow as hvd
+from mpi4py import MPI
+import dllogger
 import time
-navigation_menu = ["Home", "Weather","Crop Recommendation","Fertilizer"]
-selected = st.sidebar.selectbox("Navigation", navigation_menu)
-if selected=='Home':
-        st.markdown(f"<h1 style='text-align: center;font-size:60px;color:#33ccff;'>Agriculture</h1>", unsafe_allow_html=True)
-if selected=='Weather':
-        st.markdown(f"<h1 style='text-align: center; color:skyblue;'>Weather</h1>", unsafe_allow_html=True)
-        id = st.text_input("Enter City")
-        try:
-            mgr = owm.weather_manager()
-            observation = mgr.weather_at_place(id)
-            weather = observation.weather
-            t1 = weather.temperature('celsius')['temp']
-            h1 = weather.humidity
-            w1 = weather.wind()
-            p1=weather.pressure['press']
-            num_weekdays = 5
-            count_weekdays = 0
-            weekday_names = []
-            now = time.time()
-            now1 = time.localtime()
-            us_date = time.strftime("%m/%d/%Y", now1)
-            while count_weekdays < num_weekdays:
-                now += 86400
-                local_time = time.localtime(now)
-                weekday = local_time.tm_wday
-                wn = time.strftime("%a", local_time)
-                if count_weekdays!=5:
-                    count_weekdays += 1
-                    weekday_names.append(time.strftime("%a", local_time))
-            col1, col2,col3,col4= st.columns([2,8,5,3])
-            col1.image('download (1).png', width=75)
-            with col4:
-                pass
-            with col2:
-                st.markdown(f"<h4 style='color:red;'>{t1}°C</h4>", unsafe_allow_html=True)
-            col1,col2,col3,col4= st.columns([5,8,5,5])
-            with col1:
-                st.markdown(f"<p>{'Humidity :  '}{h1}%</p>", unsafe_allow_html=True)
-            with col1:
-                st.markdown(f"<p>{'Pressure :  '}{' '}{p1}hPa</p>", unsafe_allow_html=True)
-            with col1:
-                st.markdown(f"<p>{'Wind Speed:  '}{w1['speed']}hPa</p>", unsafe_allow_html=True)  
-            col1, col2,col3,col4,col5= st.columns([4,4,4,4,4])
-            forecaster = mgr.forecast_at_place(id, '3h', limit=40)
 
-            c=0
-            l=[]
-            for weather in forecaster.forecast:
-                temperature = weather.temperature('celsius')['temp']
-                c+=1
-                if c==8 or c==16 or c==24 or c==32 or c==40:
-                    l.append(temperature)
-            with col1:
-                st.markdown(f"<h4 style='color:#EE82EE	';>{weekday_names[0]}</h4>", unsafe_allow_html=True)
-                st.markdown(f"<p>{l[0]}°C</p>", unsafe_allow_html=True)
-            with col2:
-                st.markdown(f"<h4 style='color:blue';>{weekday_names[1]}</h4>", unsafe_allow_html=True)
-                st.markdown(f"<p>{l[1]}°C</p>", unsafe_allow_html=True)
-            with col3:
-                st.markdown(f"<h4 style='color:green';>{weekday_names[2]}</h4>", unsafe_allow_html=True)
-                st.markdown(f"<p>{l[2]}°C</p>", unsafe_allow_html=True)
-            with col4:
-                st.markdown(f"<h4 style='color:orange';>{weekday_names[3]}</h4>", unsafe_allow_html=True)
-                st.markdown(f"<p>{l[3]}°C</p>", unsafe_allow_html=True)
-            with col5:
-                st.markdown(f"<h4 style='color:red';>{weekday_names[4]}</h4>", unsafe_allow_html=True)
-                st.markdown(f"<p>{l[4]}°C</p>", unsafe_allow_html=True)
-        except:
-            pass
-if selected=='Crop Recommendation':
-    st.markdown(f"<h1 style='text-align: center; color:red;'>Crop Recomendation</h1>", unsafe_allow_html=True)
-    df=pd.read_csv("Crop_recommendation.csv")
-    features = df[['N', 'P','K','temperature', 'humidity', 'ph', 'rainfall']]
-    target = df['label']
-    labels = df['label']
-    Xtrain, Xtest, Ytrain, Ytest = train_test_split(features,target,test_size = 0.2,random_state =2)
-    RF = RandomForestClassifier(n_estimators=25, random_state=42)
-    RF.fit(Xtrain,Ytrain)
-    col1, col2,col3= st.columns([5,5,5])
-    with col1:
-        a=st.number_input('Enter N')
-    with col2:
-        b=st.number_input('Enter P')
-    with col3:
-        c1=st.number_input('Enter K')
-    col1, col2,col3,col4= st.columns([5,5,5,5])
-    with col1:
-        d=st.number_input('Temperature °C')
-    with col2:
-        e=st.number_input('Humidity %')
-    with col3:
-        f=st.number_input('pH')
-    with col4:
-        g=st.number_input('Rainfall mm')
-    data = np.array([[a,b,c1,d,e,f,g]])
-    prediction = RF.predict(data)
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.write(' ')
-    with col2:
-        if prediction[0]=='apple':
-            st.image("images/apple.jpg")
-        if prediction[0]=='banana':
-            st.image("images/banana.jpg")
-        if prediction[0]=='blackgram':
-            st.image("images/blackgram.jpg")
-        if prediction[0]=='chickpea':
-            st.image("images/chickpea.jpg")
-        if prediction[0]=='coconut':
-            st.image("images/coconut.jpg")
-        if prediction[0]=='coffee':
-            st.image("images/coffee.jpg")
-        if prediction[0]=='cotton':
-            st.image("images/cotton.jpg")
-        if prediction[0]=='grapes':
-            st.image("images/grapes.jpg")
-        if prediction[0]=='jute':
-            st.image("images/jute.jpg")
-        if prediction[0]=='kidneybeans':
-            st.image("images/kidneybeans.jpg")
-        if prediction[0]=='lentil':
-            st.image("images/lentil.jpg")
-        if prediction[0]=='maize':
-            st.image("images/maize.jpg")
-        if prediction[0]=='mango':
-            st.image("images/mango.jpg")
-        if prediction[0]=='mothbeans':
-            st.image("images/mothbeans.jpg")
-        if prediction[0]=='mungbean':
-            st.image("images/mungbeans.jpg")
-        if prediction[0]=='muskmelon':
-            st.image("images/muskmelon.jpg")
-        if prediction[0]=='orange':
-            st.image("images/orange.jpg")
-        if prediction[0]=='papaya':
-            st.image("images/papaya.jpg")
-        if prediction[0]=='pomegranate':
-            st.image("images/pomegranate.jpg")
-        if prediction[0]=='pigeonpeas':
-            st.image("images/pigeonpeas.jpg")
-        if prediction[0]=='rice':
-            st.image("images/rice.jpg")
-        if prediction[0]=='watermelon':
-            st.image("images/watermelon.jpg")
-    with col3:
-        st.write(' ')
-if selected=='Fertilizer':
-    st.markdown(f"<h1 style='text-align: center; color:blue;'>Fertilizer Prediction</h1>", unsafe_allow_html=True)
-    data = pd.read_csv('Fertilizer Prediction.csv')
-    data.rename(columns={'Humidity ':'Humidity','Soil Type':'Soil_Type','Crop Type':'Crop_Type','Fertilizer Name':'Fertilizer'},inplace=True)
-    from sklearn.preprocessing import LabelEncoder
-    encode_soil = LabelEncoder()
-    data.Soil_Type = encode_soil.fit_transform(data.Soil_Type)
-    Soil_Type = pd.DataFrame(zip(encode_soil.classes_,encode_soil.transform(encode_soil.classes_)),columns=['Original','Encoded'])
-    Soil_Type = Soil_Type.set_index('Original')
-    encode_crop = LabelEncoder()
-    data.Crop_Type = encode_crop.fit_transform(data.Crop_Type)
-    Crop_Type = pd.DataFrame(zip(encode_crop.classes_,encode_crop.transform(encode_crop.classes_)),columns=['Original','Encoded'])
-    Crop_Type = Crop_Type.set_index('Original')
-    encode_ferti = LabelEncoder()
-    data.Fertilizer = encode_ferti.fit_transform(data.Fertilizer)
-    Fertilizer = pd.DataFrame(zip(encode_ferti.classes_,encode_ferti.transform(encode_ferti.classes_)),columns=['Original','Encoded'])
-    Fertilizer = Fertilizer.set_index('Original')
-    from sklearn.model_selection import train_test_split
-    x_train, x_test, y_train, y_test = train_test_split(data.drop('Fertilizer',axis=1),data.Fertilizer,test_size=0.2,random_state=1)
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-    from sklearn.ensemble import RandomForestClassifier
-    soil=['Black','Clayey','Loamy','Red','Sandy']
-    crop=['Barley','Cotton','Ground Nuts','Maize','Millets','Oil seeds','Paddy','Pulses','Sugarcane','Tobacco','Wheat']
-    fert=['10-26-26','14-35-14','17-17-17','20-20','28-28','DAP','Urea']
-    rand = RandomForestClassifier(n_estimators=30,random_state=42)
-    pred_rand = rand.fit(x_train,y_train).predict(x_test)
-    col1, col2,col3= st.columns([5,5,5])
-    with col1:
-        a=st.number_input('Temperature °C')
-    with col2:
-        b=st.number_input('Humidity %')
-    with col3:
-        c=st.number_input('Moisture')
-    col1,col2= st.columns([5,5])
-    with col1:
-        d=st.selectbox('Soil Type',('Black','Clayey','Loamy','Red','Sandy'))
-    with col2:
-        e=st.selectbox('Crop Type',('Barley','Cotton','Ground Nuts','Maize','Millets','Oil seeds','Paddy','Pulses','Sugarcane','Tobacco','Wheat'))
-    col1, col2,col3= st.columns([5,5,5])
-    with col1:
-        f=st.number_input('Enter N')
-    with col2:
-        g=st.number_input('Enter P')
-    with col3:
-        h=st.number_input('Enter K')
-    data = np.array([[a,b,c,soil.index(d),crop.index(e),f,g,h]])
-    prediction = rand.predict(data)
-    res=fert[prediction[0]]
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.write(' ')
-    with col2:
-        if res=='10-26-26':
-            st.image("images/10-26-26.jpg")
-        if res=='14-35-14':
-            st.image("images/14-35-14.jpg")
-        if res=='17-17-17':
-            st.image("images/17-17-17.jpg")
-        if res=='20-20':
-            st.image("images/20-20.jpg")
-        if res=='28-28':
-            st.image("images/28-28.jpg")
-        if res=='DAP':
-            st.image("images/DAP.jpg")
-        if res=='Urea':
-            st.image("images/Urea.jpg")
-    with col3:
-        st.write(' ')
+from vae.utils.round import round_8
+from vae.metrics.recall import recall
+from vae.metrics.ndcg import ndcg
+from vae.models.train import VAE
+from vae.load.preprocessing import load_and_parse_ML_20M
 
-    
+def main():
+    hvd.init()
+    mpi_comm = MPI.COMM_WORLD
+
+    parser = ArgumentParser(description="Train a Variational Autoencoder for Collaborative Filtering in TensorFlow")
+    parser.add_argument('--train', action='store_true',
+                        help='Run training of VAE')
+    parser.add_argument('--test', action='store_true',
+                        help='Run validation of VAE')
+    parser.add_argument('--inference_benchmark', action='store_true',
+                        help='Measure inference latency and throughput on a variety of batch sizes')
+    parser.add_argument('--amp', action='store_true', default=False,
+                        help='Enable Automatic Mixed Precision')
+    parser.add_argument('--epochs', type=int, default=400,
+                        help='Number of epochs to train')
+    parser.add_argument('--batch_size_train', type=int, default=24576,
+                        help='Global batch size for training')
+    parser.add_argument('--batch_size_validation', type=int, default=10000,
+                        help='Used both for validation and testing')
+    parser.add_argument('--validation_step', type=int, default=50,
+                        help='Train epochs for one validation')
+    parser.add_argument('--warm_up_epochs', type=int, default=5,
+                        help='Number of epochs to omit during benchmark')
+    parser.add_argument('--total_anneal_steps', type=int, default=15000,
+                        help='Number of annealing steps')
+    parser.add_argument('--anneal_cap', type=float, default=0.1,
+                        help='Annealing cap')
+    parser.add_argument('--lam', type=float, default=1.00,
+                        help='Regularization parameter')
+    parser.add_argument('--lr', type=float, default=0.004,
+                        help='Learning rate')
+    parser.add_argument('--beta1', type=float, default=0.90,
+                        help='Adam beta1')
+    parser.add_argument('--beta2', type=float, default=0.90,
+                        help='Adam beta2')
+    parser.add_argument('--top_results', type=int, default=100,
+                        help='Number of results to be recommended')
+    parser.add_argument('--xla', action='store_true', default=False,
+                        help='Enable XLA')
+    parser.add_argument('--trace', action='store_true', default=False,
+                        help='Save profiling traces')
+    parser.add_argument('--activation', type=str, default='tanh',
+                        help='Activation function')
+    parser.add_argument('--log_path', type=str, default='./vae_cf.log',
+                        help='Path to the detailed training log to be created')
+    parser.add_argument('--seed', type=int, default=0,
+                        help='Random seed for TensorFlow and numpy')
+    parser.add_argument('--data_dir', default='/data', type=str,
+                        help='Directory for storing the training data')
+    parser.add_argument('--checkpoint_dir', type=str,
+                        default=None,
+                        help='Path for saving a checkpoint after the training')
+    args = parser.parse_args()
+    args.world_size = hvd.size()
+
+    if args.batch_size_train % hvd.size() != 0:
+        raise ValueError('Global batch size should be a multiple of the number of workers')
+
+    args.local_batch_size = args.batch_size_train // hvd.size()
+
+    logger = logging.getLogger("VAE")
+    if hvd.rank() == 0:
+        logger.setLevel(logging.INFO)
+        dllogger.init(backends=[dllogger.JSONStreamBackend(verbosity=dllogger.Verbosity.VERBOSE,
+                                                           filename=args.log_path),
+                                dllogger.StdOutBackend(verbosity=dllogger.Verbosity.VERBOSE)])
+    else:
+        dllogger.init(backends=[])
+        logger.setLevel(logging.ERROR)
+
+    dllogger.metadata("final_ndcg@100", {"unit": None})
+    dllogger.metadata("mean_inference_throughput", {"unit": "samples/s"})
+    dllogger.metadata("mean_training_throughput", {"unit": "samples/s"})
+
+    if args.seed is None:
+        if hvd.rank() == 0:
+            seed = int(time.time())
+        else:
+            seed = None
+
+        seed = mpi_comm.bcast(seed, root=0)
+    else:
+        seed = args.seed
+
+    tf.random.set_random_seed(seed)
+    np.random.seed(seed)
+    args.seed = seed
+
+    dllogger.log(data=vars(args), step='PARAMETER')
+
+    # Suppress TF warnings
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
+    # set AMP
+    os.environ['TF_ENABLE_AUTO_MIXED_PRECISION'] = '1' if args.amp else '0'
+
+    # load dataset
+    (train_data,
+     validation_data_input,
+     validation_data_true,
+     test_data_input,
+     test_data_true) = load_and_parse_ML_20M(args.data_dir)
+
+    # make sure all dims and sizes are divisible by 8
+    number_of_train_users, number_of_items = train_data.shape
+    number_of_items = round_8(number_of_items)
+
+    for data in [train_data,
+                 validation_data_input,
+                 validation_data_true,
+                 test_data_input,
+                 test_data_true]:
+        number_of_users, _ = data.shape
+        data.resize(number_of_users, number_of_items)
+
+    number_of_users, number_of_items = train_data.shape
+    encoder_dims = [number_of_items, 600, 200]
+
+    vae = VAE(train_data, encoder_dims, total_anneal_steps=args.total_anneal_steps,
+              anneal_cap=args.anneal_cap, batch_size_train=args.local_batch_size,
+              batch_size_validation=args.batch_size_validation, lam=args.lam,
+              lr=args.lr, beta1=args.beta1, beta2=args.beta2, activation=args.activation,
+              xla=args.xla, checkpoint_dir=args.checkpoint_dir, trace=args.trace,
+              top_results=args.top_results)
+
+    metrics = {'ndcg@100': partial(ndcg, R=100),
+               'recall@20': partial(recall, R=20),
+               'recall@50': partial(recall, R=50)}
+
+    if args.train:
+        vae.train(n_epochs=args.epochs, validation_data_input=validation_data_input,
+                  validation_data_true=validation_data_true,  metrics=metrics,
+                  validation_step=args.validation_step)
+
+    if args.test and hvd.size() <= 1:
+        test_results = vae.test(test_data_input=test_data_input,
+                                test_data_true=test_data_true, metrics=metrics)
+
+        for k, v in test_results.items():
+            print("{}:\t{}".format(k, v))
+    elif args.test and hvd.size() > 1:
+        print("Testing is not supported with horovod multigpu yet")
+
+    elif args.test and hvd.size() > 1:
+        print("Testing is not supported with horovod multigpu yet")
+
+    if args.inference_benchmark:
+        items_per_user = 10
+        item_indices = np.random.randint(low=0, high=10000, size=items_per_user)
+        user_indices = np.zeros(len(item_indices))
+        indices = np.stack([user_indices, item_indices], axis=1)
+
+        num_batches = 200
+        latencies = []
+        for i in range(num_batches):
+            start_time = time.time()
+            _ = vae.query(indices=indices)
+            end_time = time.time()
+
+            if i < 10:
+                #warmup steps
+                continue
+
+            latencies.append(end_time - start_time)
+
+        result_data = {}
+        result_data[f'batch_1_mean_throughput'] = 1 / np.mean(latencies)
+        result_data[f'batch_1_mean_latency'] = np.mean(latencies)
+        result_data[f'batch_1_p90_latency'] = np.percentile(latencies, 90)
+        result_data[f'batch_1_p95_latency'] = np.percentile(latencies, 95)
+        result_data[f'batch_1_p99_latency'] = np.percentile(latencies, 99)
+
+        dllogger.log(data=result_data, step=tuple())
+
+    vae.close_session()
+    dllogger.flush()
+
+if __name__ == '__main__':
+    main()
