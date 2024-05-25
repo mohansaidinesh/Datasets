@@ -1,4 +1,5 @@
-git+https://github.com/NVIDIA/dllogger#egg=dllogger
-mpi4py
-sklearn
-pandas
+numpy
+Pillow
+streamlit
+Keras==2.4.3
+tensorflow==2.3.1
