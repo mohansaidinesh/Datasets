@@ -1,5 +1,6 @@
+mediapipe
+opencv-python
+scikit-learn
+pandas
 numpy
-Pillow
-streamlit
-Keras==2.4.3
-tensorflow==2.3.1
+seaborn
