@@ -1,134 +1,155 @@
 import streamlit as st
-import tensorflow as tf
-from tensorflow.keras.preprocessing import image
+import os
+import io
+import cv2
+import mediapipe as mp
 import numpy as np
-from functools import partial
-import pandas as pd
+import pickle
+import warnings
+from PIL import Image
+from stability_sdk import client
+import stability_sdk.interfaces.gooseai.generation.generation_pb2 as generation
+from transformers import VisionEncoderDecoderModel, ViTImageProcessor, AutoTokenizer
+import torch
+from PIL import Image
+model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+feature_extractor = ViTImageProcessor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
 
-# Specify the encoding explicitly when reading the CSV file
-df = pd.read_csv("Plants_Desc.csv", encoding='latin1')
+# Set up environment variables
+os.environ['STABILITY_HOST'] = 'grpc.stability.ai:443'
+os.environ['STABILITY_KEY'] = 'sk-mjO2T3pxCHJMzG7L25kEDmWYBlts6hDO1yP5wDDwLXhEC4Nh'
 
-# Define a function to preprocess the image
-def preprocess_image(image_path):
-    img = image.load_img(image_path, target_size=(128, 128))
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)  # Expand dimensions to create batch dimension
-    return img_array
+# Fixed parameters
+seed = 4253978046
+steps = 50
+cfg_scale = 8.0
+width = 1024
+height = 1024
+samples = 5
+sampler = "k_dpmpp_2m"
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
+max_length = 25
+num_beams = 4
+gen_kwargs = {"max_length": max_length, "num_beams": num_beams}
 
-# Define a function to make predictions on an image
-def predict_image(image_path, model):
-    # Preprocess the image
-    img_array = preprocess_image(image_path)
-    # Make predictions
-    predictions = model.predict(img_array)
-    # Get the class with the highest probability
-    predicted_class = np.argmax(predictions)
-    return predicted_class, predictions[0]
+# Function to generate images
+def generate_images(prompt):
+    stability_api = client.StabilityInference(
+        key=os.environ['STABILITY_KEY'],
+        verbose=True,
+        engine="stable-diffusion-xl-1024-v1-0",
+    )
+    answers = stability_api.generate(
+        prompt=prompt,
+        seed=seed,
+        steps=steps,
+        cfg_scale=cfg_scale,
+        width=width,
+        height=height,
+        samples=samples,
+        sampler=getattr(generation, "SAMPLER_" + sampler.upper())
+    )
 
-# Define the ResidualUnit class
-DefaultConv2D = partial(tf.keras.layers.Conv2D, kernel_size=3, strides=1,
-                        padding="same", kernel_initializer="he_normal",
-                        use_bias=False)
+    for resp in answers:
+        for artifact in resp.artifacts:
+            if artifact.finish_reason == generation.FILTER:
+                warnings.warn(
+                    "Your request activated the API's safety filters and could not be processed."
+                    "Please modify the prompt and try again.")
+            if artifact.type == generation.ARTIFACT_IMAGE:
+                img = Image.open(io.BytesIO(artifact.binary))
+                img.save(str(artifact.seed) + ".png")
+                st.image(img, caption="Generated Image", use_column_width=True)
+def predict_step(image_paths):
+  images = []
+  for image_path in image_paths:
+    i_image = Image.open(image_path)
+    if i_image.mode != "RGB":
+      i_image = i_image.convert(mode="RGB")
 
-class ResidualUnit(tf.keras.layers.Layer):
-    def __init__(self, filters, strides=1, activation="relu", **kwargs):
-        super().__init__(**kwargs)
-        self.activation = tf.keras.activations.get(activation)
-        self.main_layers = [
-            DefaultConv2D(filters, strides=strides),
-            tf.keras.layers.BatchNormalization(),
-            self.activation,
-            DefaultConv2D(filters),
-            tf.keras.layers.BatchNormalization()
-        ]
-        self.skip_layers = []
-        if strides > 1:
-            self.skip_layers = [
-                DefaultConv2D(filters, kernel_size=1, strides=strides),
-                tf.keras.layers.BatchNormalization()
-            ]
+    images.append(i_image)
 
-    def call(self, inputs):
-        Z = inputs
-        for layer in self.main_layers:
-            Z = layer(Z)
-        skip_Z = inputs
-        for layer in self.skip_layers:
-            skip_Z = layer(skip_Z)
-        return self.activation(Z + skip_Z)
+  pixel_values = feature_extractor(images=images, return_tensors="pt").pixel_values
+  pixel_values = pixel_values.to(device)
 
-# Register the custom layer ResidualUnit
-custom_objects = {'ResidualUnit': ResidualUnit}
+  output_ids = model.generate(pixel_values, **gen_kwargs)
 
-# Load the saved model with custom objects scope
-with tf.keras.utils.custom_object_scope(custom_objects):
-    model = tf.keras.models.load_model('model.h5')
+  preds = tokenizer.batch_decode(output_ids, skip_special_tokens=True)
+  preds = [pred.strip() for pred in preds]
+  return preds
+def image_processed(hand_img):
+    # Image processing
+    img_rgb = cv2.cvtColor(hand_img, cv2.COLOR_BGR2RGB)
+    img_flip = cv2.flip(img_rgb, 1)
+    
+    mp_hands = mp.solutions.hands
+    hands = mp_hands.Hands(static_image_mode=True, max_num_hands=1, min_detection_confidence=0.7)
+    output = hands.process(img_flip)
+    hands.close()
 
-# Define class indices
-class_indices = {
-    'Aloevera': 0,
-    'Amla': 1,
-    'Bamboo': 2,
-    'Beans': 3,
-    'Betel': 4,
-    'Chilly': 5,
-    'Coffee': 6,
-    'Coriender': 7,
-    'Drumstick': 8,
-    'Ganigale': 9,
-    'Ginger': 10,
-    'Guava': 11,
-    'Henna': 12,
-    'Hibiscus': 13,
-    'Jasmine': 14,
-    'Lemon': 15,
-    'Mango': 16,
-    'Marigold': 17,
-    'Mint': 18,
-    'Neem': 19,
-    'Onion': 20,
-    'Palak': 21,
-    'Papaya': 22,
-    'Parijatha': 23,
-    'Pea': 24,
-    'Pomoegranate': 25,
-    'Pumpkin': 26,
-    'Raddish': 27,
-    'Rose': 28,
-    'Sampige': 29,
-    'Sapota': 30,
-    'Seethapala': 31,
-    'Spinach1': 32,
-    'Tamarind': 33,
-    'Tomato': 34,
-    'Tulsi': 35,
-    'Turmeric': 36,
-    'ashoka' : 37,
-    'camphor' : 38
-}
+    try:
+        data = output.multi_hand_landmarks[0]
+        data = str(data)
+        data = data.strip().split('\n')
 
+        garbage = ['landmark {', '  visibility: 0.0', '  presence: 0.0', '}']
+        without_garbage = [i for i in data if i not in garbage]
+
+        clean = [float(i.strip()[2:]) for i in without_garbage]
+
+        return clean
+    except:
+        return np.zeros([1,63], dtype=int)[0]
 # Streamlit UI
-st.title('Medicinal Leaf Prediction')
+st.title("Image Generation App")
+page = st.sidebar.radio("Navigation", ["Home", "Txt2Img", "Img2Txt","Sign Language"])
+if page == "Home":
+    st.image('1.jpeg',  use_column_width=True)
+elif page == "Txt2Img":
+    prompt = st.text_input("Enter prompt")
+    generate_images(prompt)
+elif page == "Img2Txt":
+    image = st.file_uploader("Upload Image", type=["jpg", "png", "jpeg"])
+    if image:
+        st.image(image, caption="Uploaded Image", width=200)
+        preds = predict_step([image])
+        st.write("Predicted Text:", preds[0])
+elif page == "Sign Language":
+    # Load model
+    with open('model.pkl', 'rb') as f:
+        svm = pickle.load(f)
 
-# File uploader
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+    # Webcam capture
+    cap = cv2.VideoCapture(0)
 
-if uploaded_file is not None:
-    # Display the selected image
-    st.image(uploaded_file, caption='Uploaded Image.', width=200)
-    # Make predictions on the image
-    predicted_class_index, probabilities = predict_image(uploaded_file, model)
-    # Map the predicted class index to class label
-    predicted_class_label = [key for key, value in class_indices.items() if value == predicted_class_index][0]
-    # Display the predicted class label and probabilities
-    st.write("Plant is :", predicted_class_label)
-    st.divider()
-    st.markdown('**Description**')
-    res = df[df['Type'].str.contains(predicted_class_label, case=False,na=False)]
-    for index,row in res.iterrows():
-        st.write(row['Description'])
-    st.divider()
-    st.markdown('**Uses**')
-    ans=df[df['Type'].str.contains(predicted_class_label, case=False,na=False)]
-    for index,row in res.iterrows():
-        st.write(row['Uses'])
+    if not cap.isOpened():
+        st.error("Cannot open camera")
+    else:
+        st.success("Camera is ready!")
+
+    while True:
+        ret, frame = cap.read()
+
+        if not ret:
+            st.error("Can't receive frame (stream end?). Exiting ...")
+            break
+
+        data = image_processed(frame)
+        data = np.array(data)
+        y_pred = svm.predict(data.reshape(-1, 63))
+
+        # Using cv2.putText() method
+        frame = cv2.putText(frame, str(y_pred[0]), (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 0, 0), 5, cv2.LINE_AA)
+        
+        # Convert the frame to an image that Streamlit can display.
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        st.image(frame, channels="RGB", use_column_width=True)
+        
+        # Clear the Streamlit cache to display only the latest frame
+        st.experimental_rerun()
+
+    cap.release()
+    cv2.destroyAllWindows()
+
