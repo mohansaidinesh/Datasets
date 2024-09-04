@@ -1,5 +1,24 @@
-id,T,GP,GI,VI,PH,GS,LA,SLA,RWC,LWCA,BFW,SFW,RFW,BDW,SDW,RDW,LL,SS,SNLL,SNUL,SLLL,SLUL,SWLL,SWUL
-1,B,100.0,7.0,11.67,11.67,1.43,1.05,628.33,73.99,0.01,1.95,1.06,0.86,0.36,0.25,0.11,11.5,2447.24,59.67,50.0,0.667,1.3,0.47,0.73
-2,FLP5,100.0,7.0,11.5,11.5,1.43,1.31,502.78,75.64,0.02,3.33,1.41,1.9,0.61,0.39,0.27,14.33,2565.98,52.67,55.33,0.9,1.1,0.6,0.67
-9,EEDL6,100.0,16.33,7.03,7.03,0.65,0.71,175.0,66.88,0.006,0.34,0.18,0.15,0.29,0.11,0.05,8.83,1643.73,33.33,39.0,0.5,0.43,0.3,0.37
-6,DLP10,100.0,7.0,10.4,10.4,1.43,1.05,311.94,76.44,0.01,2.14,1.01,1.05,0.57,0.31,0.19,12.17,2180.96,44.0,53.0,0.8,0.77,0.47,0.63
+cabage,summer,apr,32,no,fresh
+califlower,summer,apr,37,no,fresh
+pointed grourd ,monsoon,july,30,no,avarage
+potato,monsoon,aug,31,yes,fresh
+peas,monsoon,july,30,yes,scarp
+ginger,winter,jan,15,yes,fresh
+potato,spring,dec,15,no,scrap
+tomato ,winter,jan,15,no,avarage
+peas,winter,jan,15,no,scarp
+pumkin,monsoon, ,27,no,scrap
+cucumber,monsoon,july,31,no,avarage
+pointed grourd ,summer,may,43,yes,avarage
+Raddish,winter,jan,15,no,fresh
+Bitter gourd,spring,dec,21,no,scarp
+onion,winter,jan,26,no,avarage
+tomato ,winter,jan,15,no,fresh
+garlic,winter,jan,15,no,fresh
+cabage,summer,jan,38,yes,avarage
+califlower,spring,march,30,yes,fresh
+chilly,winter,jan,15,no,fresh
+okra,monsoon,aug,29,yes,fresh
+pumkin,winter,jan,15,no,scrap
+brinjal,winter,jan,21,yes,fresh
+ginger,winter,jan,15,no,scrap
